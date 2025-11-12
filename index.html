@@ -142,6 +142,17 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        .ai-message pre {
+    background-color: #282c34;
+    color: #f8f8f2;
+    padding: 10px;
+    border-radius: 8px;
+    overflow-x: auto;
+}
+.ai-message code {
+    padding: 2px 4px;
+    border-radius: 4px;
+}
     </style>
 </head>
 <body>
@@ -149,7 +160,7 @@
         <div class="header">✨ 讯飞星火智能体</div>
         <div class="chat-container" id="chat-container">
             <div class="message ai-message">
-                你好！我是专注于软件架构设计的智能体助手智慧小马，请问有什么可以帮助你的吗？
+                你好！我是讯飞星火智能助手，有什么可以帮助你的吗？
             </div>
         </div>
         <div class="input-container">
@@ -158,117 +169,123 @@
         </div>
     </div>
 
-    <script>
-        const SPARK_CONFIG = {
-            appId: 'd3260793',
-            apiKey: '49c3edc7b32b08156d28ec793bfd1811',
-            apiSecret: 'MmY4YjllNzE5YWMyNGYxMzYwMjMzZmU1',
-            domain: 'generalv4',
-            url: 'wss://spark-openapi.cn-huabei-1.xf-yun.com/v1/assistants/xnfsb2ts8re9_v1'
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+    const SPARK_CONFIG = {
+        appId: 'd3260793',
+        apiKey: '49c3edc7b32b08156d28ec793bfd1811',
+        apiSecret: 'MmY4YjllNzE5YWMyNGYxMzYwMjMzZmU1',
+        domain: 'generalv4',
+        url: 'wss://spark-openapi.cn-huabei-1.xf-yun.com/v1/assistants/xnfsb2ts8re9_v1'
+    };
+
+    const chatContainer = document.getElementById('chat-container');
+    const userInput = document.getElementById('user-input');
+    const sendBtn = document.getElementById('send-btn');
+    let conversationHistory = [];
+
+    function sendMessage() {
+        const message = userInput.value.trim();
+        if (!message) return;
+        addMessageToUI(message, 'user');
+        userInput.value = '';
+        sendBtn.disabled = true;
+        conversationHistory.push({ role: 'user', content: message });
+        addMessageToUI('<span class="thinking">正在思考中...</span>', 'ai');
+        callSparkAPI(conversationHistory);
+    }
+
+    function callSparkAPI(messages) {
+        const url = generateWebSocketURL();
+        const ws = new WebSocket(url);
+        let aiResponse = '';
+
+        ws.onopen = () => {
+            const requestData = {
+                header: { app_id: SPARK_CONFIG.appId, uid: Date.now().toString() },
+                parameter: { chat: { domain: SPARK_CONFIG.domain, temperature: 0.5, max_tokens: 2048 } },
+                payload: { message: { text: messages } }
+            };
+            ws.send(JSON.stringify(requestData));
         };
 
-        const chatContainer = document.getElementById('chat-container');
-        const userInput = document.getElementById('user-input');
-        const sendBtn = document.getElementById('send-btn');
-        let conversationHistory = [];
-
-        function sendMessage() {
-            const message = userInput.value.trim();
-            if (!message) return;
-            addMessageToUI(message, 'user');
-            userInput.value = '';
-            sendBtn.disabled = true;
-            conversationHistory.push({ role: 'user', content: message });
-            addMessageToUI('<span class="thinking">正在思考中...</span>', 'ai');
-            callSparkAPI(conversationHistory);
-        }
-
-        function callSparkAPI(messages) {
-            const url = generateWebSocketURL();
-            const ws = new WebSocket(url);
-            let aiResponse = '';
-
-            ws.onopen = () => {
-                const requestData = {
-                    header: { app_id: SPARK_CONFIG.appId, uid: Date.now().toString() },
-                    parameter: { chat: { domain: SPARK_CONFIG.domain, temperature: 0.5, max_tokens: 2048 } },
-                    payload: { message: { text: messages } }
-                };
-                ws.send(JSON.stringify(requestData));
-            };
-
-            ws.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                if (data.header && data.header.code !== 0) {
-                    console.error("API Error:", data.header);
-                    updateLastAIMessage("出错了：" + data.header.message);
-                    ws.close();
-                    sendBtn.disabled = false;
-                    return;
-                }
-                if (!data.payload || !data.payload.choices || !data.payload.choices.text) return;
-                const choices = data.payload.choices.text;
-                for (let i = 0; i < choices.length; i++) {
-                    aiResponse += choices[i].content;
-                }
-                if (data.header.status !== 2) {
-                    updateLastAIMessage(aiResponse);
-                } else {
-                    ws.close();
-                    updateLastAIMessage(aiResponse);
-                    conversationHistory.push({ role: 'assistant', content: aiResponse });
-                    if (conversationHistory.length > 10) conversationHistory = conversationHistory.slice(-10);
-                    sendBtn.disabled = false;
-                    userInput.focus();
-                }
-            };
-
-            ws.onerror = () => {
-                updateLastAIMessage('⚠️ 网络错误，请稍后重试。');
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            if (data.header && data.header.code !== 0) {
+                console.error("API Error:", data.header);
+                updateLastAIMessage("出错了：" + data.header.message);
+                ws.close();
                 sendBtn.disabled = false;
-            };
-        }
+                return;
+            }
+            if (!data.payload || !data.payload.choices || !data.payload.choices.text) return;
 
-        function generateWebSocketURL() {
-            const apiKey = SPARK_CONFIG.apiKey;
-            const apiSecret = SPARK_CONFIG.apiSecret;
-            const reqUrl = SPARK_CONFIG.url;
-            let url = new URL(reqUrl);
-            let host = url.host;
-            let path = url.pathname;
-            let date = new Date().toUTCString();
-            let algorithm = 'hmac-sha256';
-            let headers = 'host date request-line';
-            let signatureOrigin = `host: ${host}\ndate: ${date}\nGET ${path} HTTP/1.1`;
-            let signatureSha = CryptoJS.HmacSHA256(signatureOrigin, apiSecret);
-            let signature = CryptoJS.enc.Base64.stringify(signatureSha);
-            let authorizationOrigin = `api_key="${apiKey}", algorithm="${algorithm}", headers="${headers}", signature="${signature}"`;
-            let authorization = btoa(authorizationOrigin);
-            return `${reqUrl}?authorization=${authorization}&date=${encodeURIComponent(date)}&host=${host}`;
-        }
+            const choices = data.payload.choices.text;
+            for (let i = 0; i < choices.length; i++) {
+                aiResponse += choices[i].content;
+            }
 
-        function addMessageToUI(content, sender) {
-            const messageDiv = document.createElement('div');
-            messageDiv.classList.add('message', sender === 'user' ? 'user-message' : 'ai-message');
-            messageDiv.innerHTML = content;
-            chatContainer.appendChild(messageDiv);
+            if (data.header.status !== 2) {
+                updateLastAIMessage(renderMarkdown(aiResponse));
+            } else {
+                ws.close();
+                updateLastAIMessage(renderMarkdown(aiResponse));
+                conversationHistory.push({ role: 'assistant', content: aiResponse });
+                if (conversationHistory.length > 10) conversationHistory = conversationHistory.slice(-10);
+                sendBtn.disabled = false;
+                userInput.focus();
+            }
+        };
+
+        ws.onerror = () => {
+            updateLastAIMessage('⚠️ 网络错误，请稍后重试。');
+            sendBtn.disabled = false;
+        };
+    }
+
+    function generateWebSocketURL() {
+        const apiKey = SPARK_CONFIG.apiKey;
+        const apiSecret = SPARK_CONFIG.apiSecret;
+        const reqUrl = SPARK_CONFIG.url;
+        let url = new URL(reqUrl);
+        let host = url.host;
+        let path = url.pathname;
+        let date = new Date().toUTCString();
+        let algorithm = 'hmac-sha256';
+        let headers = 'host date request-line';
+        let signatureOrigin = `host: ${host}\ndate: ${date}\nGET ${path} HTTP/1.1`;
+        let signatureSha = CryptoJS.HmacSHA256(signatureOrigin, apiSecret);
+        let signature = CryptoJS.enc.Base64.stringify(signatureSha);
+        let authorizationOrigin = `api_key="${apiKey}", algorithm="${algorithm}", headers="${headers}", signature="${signature}"`;
+        let authorization = btoa(authorizationOrigin);
+        return `${reqUrl}?authorization=${authorization}&date=${encodeURIComponent(date)}&host=${host}`;
+    }
+
+    // 🧠 渲染 Markdown -> HTML
+    function renderMarkdown(text) {
+        return marked.parse(text);
+    }
+
+    function addMessageToUI(content, sender) {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message', sender === 'user' ? 'user-message' : 'ai-message');
+        messageDiv.innerHTML = content;
+        chatContainer.appendChild(messageDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function updateLastAIMessage(content) {
+        const aiMessages = chatContainer.querySelectorAll('.ai-message');
+        if (aiMessages.length > 0) {
+            aiMessages[aiMessages.length - 1].innerHTML = content;
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
+    }
 
-        function updateLastAIMessage(content) {
-            const aiMessages = chatContainer.querySelectorAll('.ai-message');
-            if (aiMessages.length > 0) {
-                aiMessages[aiMessages.length - 1].innerHTML = content;
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-            }
-        }
+    sendBtn.addEventListener('click', sendMessage);
+    userInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendMessage(); });
+</script>
 
-        sendBtn.addEventListener('click', sendMessage);
-        userInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendMessage(); });
-
-        const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js';
-        document.head.appendChild(script);
-    </script>
 </body>
 </html>
