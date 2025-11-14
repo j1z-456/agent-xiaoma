@@ -1,301 +1,292 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
-<title>💫 智慧小马智能体 · 星空玻璃舱版</title>
-
+<title>💫 智慧小马智能体 · 星空玻璃舱（带提示与帮助面板）</title>
 <style>
-/* === 星空背景 === */
-html, body {
-    margin: 0;
-    height: 100%;
-    width: 100%;
-    overflow: hidden;
-    background: radial-gradient(circle at 25% 25%, #181840 0%, #000010 100%);
-    font-family: "Segoe UI", "PingFang SC", "Microsoft Yahei", sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: #fff;
+/* === 基础与背景 === */
+:root{
+  --glass-bg: linear-gradient(135deg, rgba(30,30,60,0.55), rgba(20,20,40,0.25));
+  --accent: rgba(130,80,255,0.9);
 }
+html,body{margin:0;height:100%;width:100%;overflow:hidden;background:radial-gradient(circle at 25% 25%, #181840 0%, #000010 100%);font-family:"Segoe UI","PingFang SC","Microsoft Yahei",sans-serif;color:#fff;display:flex;align-items:center;justify-content:center}
 
-/* 💫 流星雨效果 */
-.rain {
-    position: absolute;
-    animation: make-it-rain linear infinite;
-    z-index: 1;
-}
-@keyframes make-it-rain {
-    from { top: -10%; }
-    to { top: 110%; }
-}
+/* 流星雨（背景小条） */
+.rain{position:absolute;animation:make-it-rain linear infinite;z-index:1}
+@keyframes make-it-rain{from{top:-10%}to{top:110%}}
 
-/* === 聊天主容器（梦幻玻璃舱）=== */
-.container {
-    position: relative;
-    z-index: 10;
-    width: 90%;
-    max-width: 820px;
-    height: 82vh;
-    border-radius: 24px;
-    overflow: hidden;
+/* 主容器（玻璃舱） */
+.container{
+  position:relative;z-index:10;width:90%;max-width:820px;height:82vh;border-radius:24px;overflow:hidden;
+  background:var(--glass-bg);
+  box-shadow:0 0 40px rgba(150,100,255,0.25), inset 0 0 30px rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.1);backdrop-filter: blur(20px) saturate(180%) brightness(1.05);
+  display:flex;flex-direction:column;transition:box-shadow .6s ease;
+}
+.container:hover{box-shadow:0 0 50px rgba(180,120,255,0.4), inset 0 0 30px rgba(255,255,255,0.06)}
 
-    /* 🧊 玻璃与渐变融合 */
-    background: linear-gradient(135deg, rgba(30, 30, 60, 0.55), rgba(20, 20, 40, 0.25));
-    box-shadow:
-        0 0 40px rgba(150, 100, 255, 0.25),
-        inset 0 0 30px rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(20px) saturate(180%) brightness(1.1);
-    display: flex;
-    flex-direction: column;
-    transition: box-shadow 0.6s ease;
+/* header */
+.header{
+  display:flex;align-items:center;justify-content:center;gap:12px;
+  background:linear-gradient(120deg, rgba(120,80,255,0.6), rgba(80,60,180,0.45));
+  padding:14px 20px;font-size:20px;font-weight:600;text-shadow:0 0 6px rgba(180,150,255,0.8);
+  border-bottom:1px solid rgba(255,255,255,0.08);
+  position:relative;
 }
-.container:hover {
-    box-shadow:
-        0 0 50px rgba(180, 120, 255, 0.4),
-        inset 0 0 30px rgba(255, 255, 255, 0.06);
+.header .title-main{display:flex;align-items:center;gap:10px}
+.header .help-btn{
+  position:absolute;right:12px;top:10px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);
+  color:#fff;padding:6px 10px;border-radius:10px;cursor:pointer;backdrop-filter: blur(6px);
+  transition:all .2s;
 }
+.header .help-btn:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(120,80,255,0.12)}
 
-/* 顶部标题栏 */
-.header {
-    background: linear-gradient(120deg, rgba(120, 80, 255, 0.6), rgba(80, 60, 180, 0.45));
-    color: #fff;
-    padding: 16px 24px;
-    font-size: 20px;
-    font-weight: 600;
-    text-align: center;
-    letter-spacing: 1.2px;
-    box-shadow:
-        0 0 20px rgba(120, 80, 255, 0.45),
-        inset 0 0 20px rgba(255,255,255,0.05);
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-    text-shadow: 0 0 6px rgba(180,150,255,0.8);
-}
+/* chat container */
+.chat-container{flex:1;overflow-y:auto;padding:18px 20px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth}
 
-/* 聊天内容区 */
-.chat-container {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px;
-    scroll-behavior: smooth;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-}
+/* messages */
+.message{max-width:78%;padding:12px 16px;border-radius:16px;line-height:1.6;font-size:15px;animation:fadeIn .25s ease}
+.user-message{margin-left:auto;background:linear-gradient(145deg, rgba(90,160,255,0.4), rgba(190,110,255,0.35));border:1px solid rgba(160,130,255,0.25);color:#e5e8ff;text-align:right;box-shadow:0 0 12px rgba(130,80,255,0.25), inset 0 0 10px rgba(255,255,255,0.08)}
+.ai-message{margin-right:auto;background:linear-gradient(120deg, rgba(255,255,255,0.08), rgba(180,180,255,0.04));border:1px solid rgba(255,255,255,0.08);color:#f4f4f4;box-shadow:0 0 10px rgba(255,255,255,0.04)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
-/* === 消息基础样式 === */
-.message {
-    margin-bottom: 14px;
-    padding: 14px 18px;
-    border-radius: 18px;
-    max-width: 78%;
-    line-height: 1.6;
-    word-break: break-word;
-    font-size: 15px;
-    animation: fadeIn 0.3s ease;
-    box-shadow: 0 0 10px rgba(255,255,255,0.05);
+/* hint bubble group below first AI message */
+.hints {
+  display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;
 }
+.hint {
+  background:linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+  border:1px solid rgba(255,255,255,0.06);
+  padding:8px 12px;border-radius:12px;font-size:13px;color:#e8eaff;cursor:pointer;
+  box-shadow:0 4px 12px rgba(60,40,120,0.08);
+  transition:transform .15s,background .15s;
+}
+.hint:hover{transform:translateY(-4px);background:linear-gradient(135deg, rgba(130,80,255,0.18), rgba(80,40,180,0.12))}
 
-/* 用户消息 */
-.user-message {
-    margin-left: auto;
-    background: linear-gradient(145deg, rgba(90,160,255,0.4), rgba(190,110,255,0.35));
-    border: 1px solid rgba(160, 130, 255, 0.25);
-    color: #e5e8ff;
-    text-align: right;
-    box-shadow:
-        0 0 12px rgba(130, 80, 255, 0.25),
-        inset 0 0 10px rgba(255,255,255,0.1);
-}
+/* input area */
+.input-container{flex-shrink:0;display:flex;padding:12px 14px;background:rgba(255,255,255,0.04);border-top:1px solid rgba(255,255,255,0.06);backdrop-filter: blur(8px)}
+#user-input{flex:1;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#fff;font-size:15px;outline:none;transition:all .2s}
+#user-input::placeholder{color:rgba(255,255,255,0.6)}
+#send-btn{margin-left:10px;padding:12px 20px;border-radius:12px;border:none;background:linear-gradient(135deg,#7e57ff,#4a22c4);color:#fff;cursor:pointer;box-shadow:0 0 12px rgba(120,80,255,0.25)}
 
-/* AI 消息 */
-.ai-message {
-    margin-right: auto;
-    background: linear-gradient(120deg, rgba(255,255,255,0.08), rgba(180,180,255,0.05));
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    color: #f4f4f4;
-    box-shadow:
-        0 0 10px rgba(255,255,255,0.05),
-        inset 0 0 12px rgba(255,255,255,0.03);
-}
+/* code block style + copy */
+.ai-message pre{position:relative;background:rgba(30,30,50,0.45);border-radius:12px;padding:14px;overflow:auto;font-family:"JetBrains Mono",Consolas,monospace;border:1px solid rgba(255,255,255,0.06);backdrop-filter:blur(10px)}
+.copy-btn{position:absolute;top:8px;right:10px;background:rgba(255,255,255,0.12);border-radius:8px;padding:4px 8px;border:1px solid rgba(255,255,255,0.16);cursor:pointer;color:#fff;font-size:13px}
+.copy-btn.copied::after{content:" ✅ 已复制";margin-left:6px;color:#aefba2;font-size:12px}
 
-/* === 输入框区域 === */
-.input-container {
-    flex-shrink: 0;
-    display: flex;
-    padding: 14px 16px;
-    background: rgba(255, 255, 255, 0.05);
-    border-top: 1px solid rgba(255,255,255,0.08);
-    backdrop-filter: blur(10px);
-}
+/* help side panel */
+.help-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:40;opacity:0;pointer-events:none;transition:opacity .25s}
+.help-overlay.show{opacity:1;pointer-events:auto}
+.help-panel{position:fixed;right:-450px;top:0;height:100%;width:420px;background:linear-gradient(180deg,#0b0b14, #151224);box-shadow:-20px 0 40px rgba(0,0,0,0.6);z-index:50;padding:18px 18px 36px;border-left:1px solid rgba(255,255,255,0.03);transition:right .32s;overflow:auto}
+.help-panel.show{right:0}
+.help-panel h3{margin:6px 0 12px;font-size:18px}
+.help-panel .section{margin-bottom:14px}
+.help-panel .section p{color:rgba(255,255,255,0.86);line-height:1.5;font-size:14px}
+.help-panel .small{font-size:13px;color:rgba(255,255,255,0.7)}
 
-#user-input {
-    flex: 1;
-    padding: 12px 14px;
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 12px;
-    font-size: 15px;
-    color: #fff;
-    background: rgba(255,255,255,0.08);
-    outline: none;
-    transition: all 0.25s ease;
-}
-#user-input:focus {
-    border-color: rgba(150, 100, 255, 0.8);
-    box-shadow: 0 0 10px rgba(160, 100, 255, 0.5);
-    background: rgba(255,255,255,0.12);
-}
+.header .help-short{font-size:12px;color:rgba(255,255,255,0.9);opacity:0.95;margin-left:6px}
 
-/* === 发送按钮 === */
-#send-btn {
-    margin-left: 10px;
-    padding: 12px 24px;
-    background: linear-gradient(135deg, #7e57ff, #4a22c4);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    font-weight: 500;
-    letter-spacing: 0.3px;
-    transition: all 0.35s ease;
-    box-shadow: 0 0 15px rgba(130, 80, 255, 0.35);
+/* responsive */
+@media (max-width:720px){
+  .container{width:96%;height:88vh;border-radius:16px}
+  .help-panel{width:100%;right:-100%}
+  .help-panel.show{right:0}
 }
-#send-btn:hover {
-    background: linear-gradient(135deg, #9876ff, #5e38d0);
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 0 20px rgba(180,130,255,0.45);
-}
-#send-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px);}
-    to { opacity: 1; transform: translateY(0);}
-}
-
-/* === 代码块玻璃风格 + 复制按钮 === */
-.ai-message pre {
-    position: relative;
-    background: rgba(30, 30, 50, 0.45);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 12px;
-    padding: 14px 12px;
-    overflow-x: auto;
-    color: #e9f0ff;
-    font-family: "JetBrains Mono", Consolas, monospace;
-    box-shadow: 0 0 12px rgba(120,120,255,0.25);
-    backdrop-filter: blur(12px);
-    margin-top: 8px;
-}
-.ai-message pre code {
-    background: none;
-    color: #d9e4ff;
-    font-size: 14px;
-}
-
-/* 复制按钮 */
-.copy-btn {
-    position: absolute;
-    top: 6px;
-    right: 10px;
-    background: rgba(255,255,255,0.12);
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 8px;
-    font-size: 12px;
-    color: #fff;
-    padding: 4px 8px;
-    cursor: pointer;
-    transition: all 0.25s ease;
-}
-.copy-btn:hover {
-    background: rgba(130, 80, 255, 0.3);
-    transform: scale(1.05);
-}
-
-/* 复制成功提示 */
-.copy-btn.copied::after {
-    content: "✅ 已复制!";
-    position: absolute;
-    top: -24px;
-    right: 0;
-    font-size: 12px;
-    color: #aefba2;
-    opacity: 0;
-    animation: fadeOut 1.5s ease forwards;
-}
-@keyframes fadeOut {
-    0% { opacity: 1; transform: translateY(0); }
-    100% { opacity: 0; transform: translateY(-8px); }
-}
-
 </style>
 </head>
-
 <body>
 
-<!-- 💫 星空流星背景 -->
-<script>
-function createRainEffect() {
-    const primaryColor = { r: 131, g: 33, b: 255, a: 0.7 };
-    function getRandomInt(min, max) {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-    function lightenColor(color, percentage) {
-        const factor = 1 + percentage / 100;
-        return {
-            r: Math.min(255, Math.floor(color.r * factor)),
-            g: Math.min(255, Math.floor(color.g * factor)),
-            b: Math.min(255, Math.floor(color.b * factor)),
-            a: color.a
-        };
-    }
-    const numRaindrops = 230;
-    for (let i = 0; i < numRaindrops; i++) {
-        const rainDrop = document.createElement('div');
-        rainDrop.classList.add('rain');
-        const randomLighten = getRandomInt(1, 18);
-        const lightenedColor = lightenColor(primaryColor, randomLighten);
-        const width = getRandomInt(1, 2);
-        const height = getRandomInt(3, 13);
-        const top = getRandomInt(1, 99);
-        const left = getRandomInt(1, 99);
-        const animationDuration = getRandomInt(4000, 7000);
-        const animationDelay = -getRandomInt(0, animationDuration);
-        rainDrop.style.backgroundColor = 
-            `rgba(${lightenedColor.r},${lightenedColor.g},${lightenedColor.b},${lightenedColor.a})`;
-        rainDrop.style.width = `${width}px`;
-        rainDrop.style.height = `${height}px`;
-        rainDrop.style.top = `${top}%`;
-        rainDrop.style.left = `${left}%`;
-        rainDrop.style.animationDuration = `${animationDuration}ms`;
-        rainDrop.style.animationDelay = `${animationDelay}ms`;
-        document.body.appendChild(rainDrop);
-    }
-}
-document.addEventListener('DOMContentLoaded', () => initHighlightAndCopy());
+<!-- 流星雨元素（会通过 JS 注入多个 .rain div） -->
+<!-- 主界面 -->
+<div class="container" role="main" aria-label="智慧小马对话舱">
+  <div class="header">
+    <div class="title-main">🌌 <strong>智慧小马</strong> <span class="help-short">· 软件架构 & 代码助手</span></div>
+    <button class="help-btn" id="open-help" title="帮助">❓ 帮助</button>
+  </div>
 
-document.addEventListener('DOMContentLoaded', createRainEffect);
-</script>
+  <div class="chat-container" id="chat-container" aria-live="polite">
+    <div class="message ai-message" id="welcome-msg">
+      你好！我是智慧小马，专注于软件架构设计、代码生成与调试，请问有什么可以帮到你的吗？
+      <div class="hints" id="hints">
+        <!-- 示例提示气泡（技术向 A）-->
+        <div class="hint" data-prompt="帮我设计一个 Spring Boot 登录注册模块，包含接口和数据库表设计。">帮我设计 Spring Boot 登录模块</div>
+        <div class="hint" data-prompt="请帮我调试这段 Java 报错：NullPointerException，下面是代码...">帮我调试 Java 报错</div>
+        <div class="hint" data-prompt="为我写一个 Vue 登录组件并说明如何与后端对接。">写一个 Vue 登录组件</div>
+        <div class="hint" data-prompt="帮我扩展毕业设计《基于Spring Boot的学习辅助系统》的创新点与技术路线。">扩展毕业设计创新点</div>
+      </div>
+    </div>
+  </div>
 
-<!-- ✨ 智慧小马对话舱 -->
-<div class="container">
-    <div class="header">🌌 智慧小马智能体</div>
-    <div class="chat-container" id="chat-container">
-        <div class="message ai-message">你好！我是专注于软件架构设计的智能体助手智慧小马，请问有什么可以帮助你的吗？</div>
-    </div>
-    <div class="input-container">
-        <input type="text" id="user-input" placeholder="输入你的问题..." />
-        <button id="send-btn">发送</button>
-    </div>
+  <div class="input-container">
+    <input id="user-input" type="text" placeholder="示例：帮我写一个 Spring Boot 登录接口" aria-label="输入你的问题"/>
+    <button id="send-btn">发送</button>
+  </div>
 </div>
+
+<!-- 右侧帮助面板（隐藏） -->
+<div id="helpOverlay" class="help-overlay" aria-hidden="true"></div>
+<aside id="helpPanel" class="help-panel" aria-hidden="true">
+  <h3>使用说明 · 智慧小马</h3>
+
+  <div class="section">
+    <p><strong>核心能力：</strong>代码生成、系统设计、调试分析、需求拆解与接口设计。可输出代码示例、架构图（文本形式）、测试建议与实现步骤。</p>
+  </div>
+
+  <div class="section">
+    <p><strong>如何提问（范例）：</strong></p>
+    <p class="small">• “帮我写一个 Spring Boot 登录模块，包含用户表、接口和示例 SQL。”</p>
+    <p class="small">• “这段 Java 报错 NullPointerException，下面是代码：... 请帮我定位并修复。”</p>
+    <p class="small">• “为我的毕业设计写出 3 个创新点与技术落地方案。”</p>
+  </div>
+
+  <div class="section">
+    <p><strong>提示：</strong></p>
+    <p class="small">• 若需要代码，请使用“```code```”或在请求中注明语言（如 Java、Vue、SQL）。</p>
+    <p class="small">• 想要结构化输出（表格/步骤/清单），可以加上“请以步骤/表格输出”。</p>
+    <p class="small">• 若要复现错误，请尽量提供完整错误堆栈与关键代码片段。</p>
+  </div>
+
+  <div class="section">
+    <p class="small">版本信息：智慧小马 v1 · UI：星空玻璃舱 </p>
+    <p class="small">更多功能将陆续支持：多角色切换、技能插件、Qwen 接入示例等。</p>
+  </div>
+
+  <div style="margin-top:12px">
+    <button id="closeHelp" style="padding:8px 12px;border-radius:8px;border:none;background:var(--accent);color:#fff;cursor:pointer">关闭</button>
+  </div>
+</aside>
+
+<!-- highlight.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<!-- Crypto for your spark signing (kept) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<!-- marked for markdown render -->
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
 <script>
+/* ---------------------------
+   流星雨背景生成（保持你原样式）
+   --------------------------- */
+function createRainEffect() {
+  const primaryColor = { r: 131, g: 33, b: 255, a: 0.7 };
+  function getRandomInt(min,max){return Math.floor(Math.random()*(max-min+1))+min}
+  function lightenColor(c,p){const f=1+p/100;return{r:Math.min(255,Math.floor(c.r*f)),g:Math.min(255,Math.floor(c.g*f)),b:Math.min(255,Math.floor(c.b*f)),a:c.a}}
+  const num=160;
+  for(let i=0;i<num;i++){
+    const d=document.createElement('div');
+    d.className='rain';
+    const lightened=lightenColor(primaryColor,getRandomInt(1,18));
+    d.style.backgroundColor=`rgba(${lightened.r},${lightened.g},${lightened.b},${lightened.a})`;
+    const w=getRandomInt(1,2); const h=getRandomInt(3,14);
+    d.style.width=`${w}px`; d.style.height=`${h}px`;
+    d.style.left=`${getRandomInt(0,99)}%`; d.style.top=`${getRandomInt(-20,100)}%`;
+    d.style.animationDuration=`${getRandomInt(3500,8000)}ms`;
+    d.style.animationDelay=`-${getRandomInt(0,4000)}ms`;
+    document.body.appendChild(d);
+  }
+}
+
+/* ---------------------------
+   DOM ready init
+   --------------------------- */
+document.addEventListener('DOMContentLoaded', () => {
+  createRainEffect();
+  initUI();
+  initHighlightAndCopy(document); // 初始化页面上已有代码块（如有）
+});
+
+/* ---------------------------
+   UI: hints 点击 / 填充输入 / 发送
+   --------------------------- */
+function initUI(){
+  const hints = document.getElementById('hints');
+  const input = document.getElementById('user-input');
+  const sendBtn = document.getElementById('send-btn');
+
+  // 点击示例提示 -> 填入输入框并聚焦
+  hints.addEventListener('click', (e)=>{
+    const target = e.target.closest('.hint');
+    if(!target) return;
+    const prompt = target.dataset.prompt || target.textContent.trim();
+    input.value = prompt;
+    input.focus();
+    // 可立即发送（若想自动发送，则解除注释）
+    // sendBtn.click();
+  });
+
+  // placeholder 更具指向性（已在 HTML）
+  // 发送按钮
+  sendBtn.addEventListener('click', () => {
+    // 调用你页面的 sendMessage()（已经定义在后续脚本）
+    sendMessage();
+  });
+
+  // Enter 键触发
+  input.addEventListener('keypress', (e)=>{
+    if(e.key === 'Enter') sendMessage();
+  });
+
+  // 帮助面板开关
+  const openHelp = document.getElementById('open-help');
+  const helpPanel = document.getElementById('helpPanel');
+  const helpOverlay = document.getElementById('helpOverlay');
+  const closeHelp = document.getElementById('closeHelp');
+
+  function open() {
+    helpPanel.classList.add('show');
+    helpOverlay.classList.add('show');
+    helpPanel.setAttribute('aria-hidden','false');
+    helpOverlay.setAttribute('aria-hidden','false');
+  }
+  function close() {
+    helpPanel.classList.remove('show');
+    helpOverlay.classList.remove('show');
+    helpPanel.setAttribute('aria-hidden','true');
+    helpOverlay.setAttribute('aria-hidden','true');
+  }
+  openHelp.addEventListener('click', open);
+  closeHelp.addEventListener('click', close);
+  helpOverlay.addEventListener('click', close);
+}
+
+/* ---------------------------
+   高亮 + 复制按钮（对动态插入的代码块生效）
+   --------------------------- */
+function initHighlightAndCopy(context = document){
+  const blocks = context.querySelectorAll('pre code');
+  blocks.forEach(block=>{
+    if(!block.classList.contains('hljs')){
+      try{hljs.highlightElement(block)}catch(e){}
+    }
+    const pre = block.closest('pre');
+    if(!pre) return;
+    if(!pre.querySelector('.copy-btn')){
+      const btn = document.createElement('button');
+      btn.className = 'copy-btn';
+      btn.type = 'button';
+      btn.textContent = '复制';
+      pre.appendChild(btn);
+      btn.addEventListener('click', async ()=>{
+        try{
+          await navigator.clipboard.writeText(block.innerText);
+          btn.classList.add('copied');
+          setTimeout(()=>btn.classList.remove('copied'),1400);
+        }catch(err){
+          alert('复制失败，请手动复制');
+        }
+      });
+    }
+  });
+}
+
+/* ---------------------------
+   AI 对话核心（保留你原有 Spark WebSocket 调用）
+   下面函数 sendMessage、callSparkAPI、updateLastAIMessage 等
+   与你之前的脚本逻辑一致 —— 我仅做了最小整合以调用 initHighlightAndCopy
+   --------------------------- */
+
 const SPARK_CONFIG = {
     appId: 'd3260793',
     apiKey: '49c3edc7b32b08156d28ec793bfd1811',
@@ -310,169 +301,130 @@ const sendBtn = document.getElementById('send-btn');
 let conversationHistory = [];
 let ws = null;
 let aiResponse = '';
-let isGenerating = false; // ✅ 新状态
+let isGenerating = false;
 
-function sendMessage() {
-    if (isGenerating) {
-        // 用户点击“停止”
-        if (ws && ws.readyState === WebSocket.OPEN) {
-            ws.close();
-           updateLastAIMessage(renderMarkdown(aiResponse + ' ⚪（已停止生成）'));
-
-        }
-        resetButton();
-        return;
-    }
-
-    const message = userInput.value.trim();
-    if (!message) return;
-
-    addMessageToUI(message, 'user');
-    userInput.value = '';
-    addMessageToUI('<span class="thinking">正在思考中...</span>', 'ai');
-
-    conversationHistory.push({ role: 'user', content: message });
-
-    sendBtn.textContent = '⏹ 停止生成';
-    sendBtn.style.background = '#f44336';
-    isGenerating = true;
-
-    callSparkAPI(conversationHistory);
+function addMessageToUI(content, sender){
+  const div = document.createElement('div');
+  div.classList.add('message', sender === 'user' ? 'user-message' : 'ai-message');
+  div.innerHTML = content;
+  chatContainer.appendChild(div);
+  chatContainer.scrollTop = chatContainer.scrollHeight;
+  return div;
 }
 
-function callSparkAPI(messages) {
-    const url = generateWebSocketURL();
-    ws = new WebSocket(url);
-    aiResponse = '';
-
-    ws.onopen = () => {
-        const requestData = {
-            header: { app_id: SPARK_CONFIG.appId, uid: Date.now().toString() },
-            parameter: { chat: { domain: SPARK_CONFIG.domain, temperature: 0.5, max_tokens: 2048 } },
-            payload: { message: { text: messages } }
-        };
-        ws.send(JSON.stringify(requestData));
-    };
-
-    ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        if (data.header && data.header.code !== 0) {
-            updateLastAIMessage("出错了：" + data.header.message);
-            ws.close();
-            resetButton();
-            return;
-        }
-
-        if (!data.payload || !data.payload.choices || !data.payload.choices.text) return;
-
-        const choices = data.payload.choices.text;
-        for (let i = 0; i < choices.length; i++) {
-            aiResponse += choices[i].content;
-        }
-
-        if (data.header.status !== 2) {
-            updateLastAIMessage(renderMarkdown(aiResponse));
-        } else {
-            ws.close();
-            updateLastAIMessage(renderMarkdown(aiResponse));
-            conversationHistory.push({ role: 'assistant', content: aiResponse });
-            if (conversationHistory.length > 10) conversationHistory = conversationHistory.slice(-10);
-            resetButton();
-        }
-    };
-
-    ws.onerror = () => {
-        updateLastAIMessage('⚠️ 网络错误，请稍后重试。');
-        resetButton();
-    };
-}
-
-function generateWebSocketURL() {
-    const { apiKey, apiSecret, url: reqUrl } = SPARK_CONFIG;
-    let url = new URL(reqUrl);
-    let host = url.host, path = url.pathname;
-    let date = new Date().toUTCString();
-    let algorithm = 'hmac-sha256';
-    let headers = 'host date request-line';
-    let signatureOrigin = `host: ${host}\ndate: ${date}\nGET ${path} HTTP/1.1`;
-    let signatureSha = CryptoJS.HmacSHA256(signatureOrigin, apiSecret);
-    let signature = CryptoJS.enc.Base64.stringify(signatureSha);
-    let authorizationOrigin = `api_key="${apiKey}", algorithm="${algorithm}", headers="${headers}", signature="${signature}"`;
-    let authorization = btoa(authorizationOrigin);
-    return `${reqUrl}?authorization=${authorization}&date=${encodeURIComponent(date)}&host=${host}`;
-}
-
-function renderMarkdown(text) {
-    return marked.parse(text);
-}
-
-function addMessageToUI(content, sender) {
-    const div = document.createElement('div');
-    div.classList.add('message', sender === 'user' ? 'user-message' : 'ai-message');
-    div.innerHTML = content;
-    chatContainer.appendChild(div);
+function updateLastAIMessage(content){
+  const aiMsgs = chatContainer.querySelectorAll('.ai-message');
+  if(aiMsgs.length > 0){
+    const lastMsg = aiMsgs[aiMsgs.length - 1];
+    lastMsg.innerHTML = content;
     chatContainer.scrollTop = chatContainer.scrollHeight;
+    // 对最后插入内容做高亮与复制按钮初始化
+    initHighlightAndCopy(lastMsg);
+  }
 }
 
-function updateLastAIMessage(content) {
-    const aiMsgs = chatContainer.querySelectorAll('.ai-message');
-    if (aiMsgs.length > 0) {
-        const lastMsg = aiMsgs[aiMsgs.length - 1];
-        lastMsg.innerHTML = content;
-        chatContainer.scrollTop = chatContainer.scrollHeight;
+function resetButton(){
+  sendBtn.textContent = '发送';
+  sendBtn.style.background = 'linear-gradient(120deg, #42a5f5, #1e88e5)';
+  isGenerating = false;
+}
 
-        // ✅ 针对当前这条消息执行高亮 + 复制按钮添加
-        initHighlightAndCopy(lastMsg);
+function sendMessage(){
+  if(isGenerating){
+    if(ws && ws.readyState === WebSocket.OPEN){
+      ws.close();
+      updateLastAIMessage(renderMarkdown(aiResponse + '\n\n⚪（已停止生成）'));
     }
+    resetButton();
+    return;
+  }
+  const msg = userInput.value.trim();
+  if(!msg) return;
+  addMessageToUI(escapeHtml(msg), 'user');
+  userInput.value = '';
+  const thinking = addMessageToUI('<span class="thinking">正在思考中...</span>', 'ai');
+  conversationHistory.push({role:'user', content: msg});
+  sendBtn.textContent = '⏹ 停止生成';
+  sendBtn.style.background = '#f44336';
+  isGenerating = true;
+  callSparkAPI(conversationHistory);
 }
 
+/* minimal escape for inserting user text into DOM (we render markdown for AI only) */
+function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
 
-
-function resetButton() {
-    sendBtn.textContent = '发送';
-    sendBtn.style.background = 'linear-gradient(120deg, #42a5f5, #1e88e5)';
-    isGenerating = false;
+/* Markdown render wrapper */
+function renderMarkdown(text){
+  try{return marked.parse(text);}
+  catch(e){ return `<pre>${escapeHtml(text)}</pre>`; }
 }
 
-sendBtn.addEventListener('click', sendMessage);
-userInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendMessage(); });
+/* WebSocket URL generation (as before) */
+function generateWebSocketURL(){
+  const { apiKey, apiSecret, url: reqUrl } = SPARK_CONFIG;
+  let url = new URL(reqUrl);
+  let host = url.host, path = url.pathname;
+  let date = new Date().toUTCString();
+  let algorithm = 'hmac-sha256';
+  let headers = 'host date request-line';
+  let signatureOrigin = `host: ${host}\ndate: ${date}\nGET ${path} HTTP/1.1`;
+  let signatureSha = CryptoJS.HmacSHA256(signatureOrigin, apiSecret);
+  let signature = CryptoJS.enc.Base64.stringify(signatureSha);
+  let authorizationOrigin = `api_key="${apiKey}", algorithm="${algorithm}", headers="${headers}", signature="${signature}"`;
+  let authorization = btoa(authorizationOrigin);
+  return `${reqUrl}?authorization=${authorization}&date=${encodeURIComponent(date)}&host=${host}`;
+}
+
+/* call spark-like websocket (keeps your original payload shape) */
+function callSparkAPI(messages){
+  const url = generateWebSocketURL();
+  ws = new WebSocket(url);
+  aiResponse = '';
+  ws.onopen = ()=>{
+    const requestData = {
+      header:{ app_id: SPARK_CONFIG.appId, uid: Date.now().toString() },
+      parameter:{ chat:{ domain: SPARK_CONFIG.domain, temperature:0.5, max_tokens:2048 } },
+      payload:{ message: { text: messages } }
+    };
+    ws.send(JSON.stringify(requestData));
+  };
+
+  ws.onmessage = (evt)=>{
+    try{
+      const data = JSON.parse(evt.data);
+      if(data.header && data.header.code !== 0){
+        updateLastAIMessage("出错了：" + (data.header.message || '未知错误'));
+        ws.close(); resetButton(); return;
+      }
+      if(!data.payload || !data.payload.choices || !data.payload.choices.text) return;
+      const choices = data.payload.choices.text;
+      for(let i=0;i<choices.length;i++){
+        aiResponse += choices[i].content;
+      }
+      // streaming: header.status === 2 indicates finished in your previous code
+      if(data.header.status !== 2){
+        updateLastAIMessage(renderMarkdown(aiResponse));
+      } else {
+        ws.close();
+        updateLastAIMessage(renderMarkdown(aiResponse));
+        conversationHistory.push({role:'assistant', content: aiResponse});
+        if(conversationHistory.length > 10) conversationHistory = conversationHistory.slice(-10);
+        resetButton();
+      }
+    }catch(err){
+      console.error('ws onmessage parse error', err);
+    }
+  };
+
+  ws.onerror = ()=>{
+    updateLastAIMessage('⚠️ 网络错误，请稍后重试。');
+    resetButton();
+  };
+}
+
+/* ensure initial welcome is processed by highlight+copy (if any code) */
+initHighlightAndCopy(document);
+
 </script>
-<!-- highlight.js + 动态复制功能 -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-<script>
-// ✅ 对新生成代码块高亮并添加复制功能
-function initHighlightAndCopy(context = document) {
-    const codeBlocks = context.querySelectorAll('pre code');
-
-    codeBlocks.forEach(block => {
-        // 执行高亮（只对还没高亮的块）
-        if (!block.classList.contains('hljs')) {
-            hljs.highlightElement(block);
-        }
-
-        const pre = block.closest('pre');
-        if (!pre.querySelector('.copy-btn')) {
-            const btn = document.createElement('button');
-            btn.className = 'copy-btn';
-            btn.textContent = '复制';
-            pre.appendChild(btn);
-
-            btn.addEventListener('click', async () => {
-                try {
-                    await navigator.clipboard.writeText(block.innerText);
-                    btn.classList.add('copied');
-                    setTimeout(() => btn.classList.remove('copied'), 1500);
-                } catch (err) {
-                    console.error('复制失败:', err);
-                    alert('复制失败，请手动复制');
-                }
-            });
-        }
-    });
-}
-
-</script>
-
-
 </body>
-</html>
+</html>   
