@@ -79,7 +79,7 @@ html,body{margin:0;height:100%;width:100%;overflow:hidden;background:radial-grad
 /* help side panel */
 .help-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:40;opacity:0;pointer-events:none;transition:opacity .25s}
 .help-overlay.show{opacity:1;pointer-events:auto}
-.help-panel{position:fixed;right:-450px;top:0;height:100%;width:420px;background:linear-gradient(180deg,#0b0b14, #151224);box-shadow:-20px 0 40px rgba(0,0,0,0.6);z-index:50;padding:18px 18px 36px;border-left:1px solid rgba(255,255,255,0.03);transition:right .32s;overflow:auto}
+.help-panel{position:fixed;right:-488px;top:0;height:100%;width:420px;background:linear-gradient(180deg,#0b0b14, #151224);box-shadow:-20px 0 40px rgba(0,0,0,0.6);z-index:50;padding:18px 18px 36px;border-left:1px solid rgba(255,255,255,0.03);transition:right .32s;overflow:auto}
 .help-panel.show{right:0}
 .help-panel h3{margin:6px 0 12px;font-size:18px}
 .help-panel .section{margin-bottom:14px}
@@ -103,7 +103,7 @@ html,body{margin:0;height:100%;width:100%;overflow:hidden;background:radial-grad
 <div class="container" role="main" aria-label="智慧小马对话舱">
   <div class="header">
     <div class="title-main">🌌 <strong>智慧小马</strong> <span class="help-short">· 软件架构 & 代码助手</span></div>
-    <button class="help-btn" id="open-help" title="帮助">❓ 帮助</button>
+    <!-- <button class="help-btn" id="open-help" title="帮助">❓ 帮助</button> -->
   </div>
 
   <div class="chat-container" id="chat-container" aria-live="polite">
@@ -127,7 +127,7 @@ html,body{margin:0;height:100%;width:100%;overflow:hidden;background:radial-grad
 
 <!-- 右侧帮助面板（隐藏） -->
 <div id="helpOverlay" class="help-overlay" aria-hidden="true"></div>
-<aside id="helpPanel" class="help-panel" aria-hidden="true">
+<!-- <aside id="helpPanel" class="help-panel" aria-hidden="true">
   <h3>使用说明 · 智慧小马</h3>
 
   <div class="section">
@@ -156,7 +156,7 @@ html,body{margin:0;height:100%;width:100%;overflow:hidden;background:radial-grad
   <div style="margin-top:12px">
     <button id="closeHelp" style="padding:8px 12px;border-radius:8px;border:none;background:var(--accent);color:#fff;cursor:pointer">关闭</button>
   </div>
-</aside>
+</aside> -->
 
 <!-- highlight.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
